@@ -14,15 +14,15 @@ def clean_text(text):
     text = re.sub(r'[^a-z\s]', '', text)
     return text
 
-# Calculate the term frequency (TF) 
+# Calculate the term frequency (TF)
 def calculate_term_frequency(term, text):
     words = text.split()
     count = words.count(term)
     total_terms = len(words)
-    tf = count / total_terms
+    tf = count / total_terms if total_terms > 0 else 0
     return count, total_terms, tf, words
 
-# Calculate the inverse document frequency (IDF) 
+# Calculate the inverse document frequency (IDF)
 def calculate_inverse_document_frequency(term, tfidf_matrix, feature_names):
     term_idx = np.where(feature_names == term)[0]
     if len(term_idx) == 0:
@@ -30,11 +30,9 @@ def calculate_inverse_document_frequency(term, tfidf_matrix, feature_names):
     term_idx = term_idx[0]
     num_docs_with_term = np.sum(tfidf_matrix[:, term_idx].toarray() > 0)
     total_docs = tfidf_matrix.shape[0]
-    if num_docs_with_term == 0:
-        return 0
-    return np.log(total_docs / num_docs_with_term)
+    return np.log((total_docs + 1) / (num_docs_with_term + 1)) + 1  # Smooth IDF
 
-# Calculate the TF-IDF 
+# Calculate the TF-IDF
 def calculate_tf_idf(term, doc, tfidf_matrix, feature_names):
     count, total_terms, tf, terms_list = calculate_term_frequency(term, doc)
     idf = calculate_inverse_document_frequency(term, tfidf_matrix, feature_names)
@@ -83,8 +81,7 @@ def main():
         print(f"Terms in quote: {terms_list}")
         print(f"TF(term, quote) = {tf:.6f}")
         print(f"IDF(term) = {idf:.6f}")
-        print(f"TF-IDF = TF * IDF = {calculated_tfidf:.6f}")
-        print(f"Stored Term Score: {score:.6f}")
+        print(f"TF-IDF = TF * IDF (Stored Term Score) = : {score:.6f}")
         print("-" * 50)
     
     # Add the important term and its score to the original dataframe
